@@ -3,10 +3,6 @@ import glob
 import time
 import datetime
 
-# start the required modules to read the sensor data
-os.system('modprobe w1-gpio')
-os.system('modprobe w1-therm')
-
 # get all ds18b20 temp sensor directories
 tempSensorDirectories = glob.glob('/sys/bus/w1/devices/28*')
 
