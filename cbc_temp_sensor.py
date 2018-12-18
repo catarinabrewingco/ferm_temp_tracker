@@ -17,7 +17,7 @@ def getTempSensorFiles():
         
     return tempSensorFiles
 
-# gets the temps from each temperature file in the given list
+# gets the temp the given temperature file
 def getTemp(tempSensorFile):
     # set a shorthand for the file
     file = tempSensorFile["tempSensorFile"]
