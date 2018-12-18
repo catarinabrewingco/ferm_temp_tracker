@@ -2,7 +2,6 @@ import os
 import glob
 import time
 import datetime
-import RPi.GPIO as GPIO
 
 # get all ds18b20 temp sensor directories
 tempSensorDirectories = glob.glob('/sys/bus/w1/devices/28*')
