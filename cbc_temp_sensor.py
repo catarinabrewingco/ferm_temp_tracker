@@ -70,6 +70,7 @@ def getTempInFahrenheit(tempData):
     # return Fahrenheit
     return tempFahrenheit
 
+# get the current date and time in format Day of Week, Month Day, Year Hour:Minute:Seconds AM/PM (e.g. Mon, Dec 17, 2018 04:43:02 PM)
 def getDateTime():
     currentDateTime = datetime.datetime.now()
 
@@ -78,26 +79,54 @@ def getDateTime():
 # main loop for the program
 def run():
     try:
-        print('we are running...')
+        print('-----\n-> Program running.\n-> Searching for temp sensors...\n-----')
+        # detect all attached temp sensors
         files = getTempSensorFiles()
-        print("{} temp sensors detected...".format(len(files)))
-    
-        while True:
-            temps = getTemps(files)
-
-            for temp in temps:
-                print('probe: {} | datetime: {} | temp (F): {}'.format(temp['tempSensorId'], getDateTime(), temp['temp']))
-
-            print('--------')
-
-            # wait interval
-            time.sleep(0.5)
-            
-    except KeyboardInterrupt:
-        print("Keyboard interrupt has been triggered. Ending the program.")
         
-    except:
-        print("An unknown error has occurred.")
+        # if no sensors are detected, kill the program
+        if len(files) < 1:
+            raise NoSensorsDetectedException()
+        # otherwise, run on!
+        else:
+            print("\n-----\n-> {} temp sensors detected.\n-> Monitoring temperatures now.\n-----\n".format(len(files)))
+        
+            # infinite loop to attempt to run the program
+            while True:
+                # get the temperature (in Fahrenheit) from each temp sensor
+                temps = getTemps(files)
 
+                # print out each sensor's ID, timestamp, and temp data
+                for temp in temps:
+                    print('probe: {} | datetime: {} | temp (F): {}'.format(temp['tempSensorId'], getDateTime(), temp['temp']))
+
+                # line delimiter
+                print('--------')
+
+                # wait interval
+                time.sleep(0.5)
+                
+    # if no sensors are detected, kill the program
+    except NoSensorsDetectedException:
+        print("\n!!!!!\n-> No temp sensors detected.\n-> Exiting program.\n!!!!!\n")
+        # kills the program
+        exit()
+    
+    # if Crtl+C is pressed on the keyboard, kill the program
+    except KeyboardInterrupt:
+        print("\n!!!!!\n-> Keyboard interrupt has been triggered.\n-> Exiting program.\n!!!!!\n")
+        # kills the program
+        exit()
+        
+    # if an error is detected, kill the program
+    except:
+        print("\n!!!!!\n-> An unknown error has occurred.\n-> Exiting program.\n!!!!!\n")
+        # kills the program
+        exit()
+        
+# custom exception class for when no sensors are detected
+class NoSensorsDetectedException(Exception):
+    pass
+
+# run the program on the main thread
 if __name__ == '__main__':
     run()
