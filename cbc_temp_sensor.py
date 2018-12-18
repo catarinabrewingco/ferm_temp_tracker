@@ -2,6 +2,7 @@ import os
 import glob
 import time
 import datetime
+import RPi.GPIO as GPIO
 
 # get all ds18b20 temp sensor directories
 tempSensorDirectories = glob.glob('/sys/bus/w1/devices/28*')
@@ -77,20 +78,27 @@ def getDateTime():
 
 # main loop for the program
 def run():
-    print('we are running...')
-    files = getTempSensorFiles()
-    print('we have a number of files...')
+    try:
+        print('we are running...')
+        files = getTempSensorFiles()
+        print("{} temp sensors detected...".format(len(files)))
     
-    while True:
-        temps = getTemps(files)
+        while True:
+            temps = getTemps(files)
 
-        for temp in temps:
-            print('probe: {} | datetime: {} | temp (F): {}'.format(temp['tempSensorId'], getDateTime(), temp['temp']))
+            for temp in temps:
+                print('probe: {} | datetime: {} | temp (F): {}'.format(temp['tempSensorId'], getDateTime(), temp['temp']))
 
-        print('--------')
+            print('--------')
 
-        # wait interval
-        time.sleep(0.5)
+            # wait interval
+            time.sleep(0.5)
+            
+    except KeyboardInterrupt:
+        print("Keyboard interrupt has been triggered. Ending the program.")
+        
+    except:
+        print("An unknown error has occurred.")
 
 if __name__ == '__main__':
     run()
