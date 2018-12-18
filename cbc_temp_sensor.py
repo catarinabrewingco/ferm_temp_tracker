@@ -4,47 +4,47 @@ import time
 import datetime
 
 # get all ds18b20 temp sensor directories
-tempSensorDirectories = glob.glob('/sys/bus/w1/devices/28*')
+temp_sensor_directories = glob.glob('/sys/bus/w1/devices/28*')
 
 # gets a list of temperature sensor files from the directories glob
-def getTempSensorFiles():
-    tempSensorFiles = []
+def get_temp_sensor_files():
+    temp_sensor_files = []
     
-    for dir in tempSensorDirectories:
-        tempSensorId = os.path.basename(dir)
-        tempSensorFile = dir + '/w1_slave'
-        tempSensorFiles.append({'tempSensorId': tempSensorId, 'tempSensorFile': tempSensorFile})
+    for dir in temp_sensor_directories:
+        temp_sensor_id = os.path.basename(dir)
+        temp_sensor_file = dir + '/w1_slave'
+        temp_sensor_files.append({'temp_sensor_id': temp_sensor_id, 'temp_sensor_file': temp_sensor_file})
         
-    return tempSensorFiles
+    return temp_sensor_files
 
 # gets the temp for the given temperature file
-def getTemp(tempSensorFile):
+def get_temp(temp_sensor_file):
     # set a shorthand for the file
-    file = tempSensorFile["tempSensorFile"]
+    file = temp_sensor_file["temp_sensor_file"]
     # attempt to get the raw temperature data from the file
-    rawTemp = getRawTempData(file)
+    raw_temp = get_raw_temp_data(file)
 
-    # if we have a rawTemp and it includes the expected line, continue
-    if len(rawTemp) > 0 and rawTemp.find("t=") != -1:
+    # if we have a raw_temp and it includes the expected line, continue
+    if len(raw_temp) > 0 and raw_temp.find("t=") != -1:
         # get just the temperature data (ditching the "t=")
-        tempData = rawTemp[rawTemp.find("t=") + 2:]
+        temp_data = raw_temp[raw_temp.find("t=") + 2:]
         # convert the raw temperature data from Celsius (default) to Fahrenheit (desired)
-        tempFahrenheit = getTempInFahrenheit(tempData)
+        temp_fahrenheit = get_temp_in_fahrenheit(temp_data)
         # round the temperature to 2 decimal places
-        tempFahrenheitRounded = round(tempFahrenheit, 2)
+        temp_fahrenheit_rounded = round(temp_fahrenheit, 2)
 
         # return the final temperature object, which includes the associated probe ID and the Fahrenheit temperature rounded to 2 decimal places
-        return {"tempSensorId": tempSensorFile["tempSensorId"], "temp": tempFahrenheitRounded}
+        return {"temp_sensor_id": temp_sensor_file["temp_sensor_id"], "temp": temp_fahrenheit_rounded}
     # otherwise, return a temperature object with a 0 temperature recording
     # this will keep the sensor on the chart, indicating to us that it was an unintenional failure
     # whereas once we implement toggle switches (physical and/or digital) for individual probes, that will add/remove probe data from the chart
     else:
-        return {"tempSensorId": tempSensorFile["tempSensorId"], "temp": 0.0}
+        return {"temp_sensor_id": temp_sensor_file["temp_sensor_id"], "temp": 0.0}
 
 # gets raw temperature data line from given file
-def getRawTempData(file):
+def get_raw_temp_data(file):
     # attempt to read the given file
-    lines = readFile(file)
+    lines = read_file(file)
 
     # if the lines array is not empty, read the lines
     if len(lines) > 0:
@@ -52,7 +52,7 @@ def getRawTempData(file):
         while lines[0].strip()[-3:] != 'YES':
             # the probe is not reading properly; wait, then try again
             time.sleep(0.5)
-            lines = readFile(file)
+            lines = read_file(file)
 
         # return just the temperature line from the file
         return lines[1]
@@ -61,7 +61,7 @@ def getRawTempData(file):
         return []
 
 # reads the given file, then closes the file and returns the lines from it
-def readFile(file, tries = 0):
+def read_file(file, tries = 0):
     # set a limit to the number of times we can try to find the given file
     max_tries = 5
     
@@ -69,9 +69,9 @@ def readFile(file, tries = 0):
     if tries < max_tries:
         # try to read the given file
         try:
-            currentFile = open(file, 'r')
-            lines = currentFile.readlines()
-            currentFile.close()
+            current_file = open(file, 'r')
+            lines = current_file.readlines()
+            current_file.close()
             
             # if successful, return the lines present in the file
             return lines
@@ -79,31 +79,31 @@ def readFile(file, tries = 0):
         # if we cannot find the file, run the method again with an incremented tries counter
         except IOError:
             print("\n!!\n-> Uh oh, couldn't find file {}.\nTries remaining: {}\n!!\n".format(file, max_tries - (tries + 1)))
-            readFile(file, tries + 1)
+            read_file(file, tries + 1)
 
     # if we are unsuccessful in finding the file to read, return an empty array to signal this failure
     return []
 
 # outputs given temperature in Fahrenheit
-def getTempInFahrenheit(tempData):
+def get_temp_in_fahrenheit(temp_data):
     # convert given data to Celsius
-    tempCelsius = float(tempData) / 1000.0
+    temp_celsius = float(temp_data) / 1000.0
     # convert Celsius to Fahrenheit
-    tempFahrenheit = tempCelsius * 9.0 / 5.0 + 32.0
+    temp_fahrenheit = temp_celsius * 9.0 / 5.0 + 32.0
 
     # return Fahrenheit
-    return tempFahrenheit
+    return temp_fahrenheit
 
 # get the current date and time in format Day of Week, Month Day, Year Hour:Minute:Seconds AM/PM (e.g. Mon, Dec 17, 2018 04:43:02 PM)
-def getDateTime():
-    currentDateTime = datetime.datetime.now()
-    return currentDateTime.strftime('%a, %b %d, %Y %I:%M:%S %p')
+def get_date_time():
+    current_date_time = datetime.datetime.now()
+    return current_date_time.strftime('%a, %b %d, %Y %I:%M:%S %p')
 
 # prints out the temp data from a given list of temps
 def print_temps(temps):
     #print out each sensor's ID, timestamp, and temp data
     for temp in temps:
-        print('probe: {} | datetime: {} | temp (F): {}'.format(temp['tempSensorId'], getDateTime(), temp['temp']))
+        print('probe: {} | datetime: {} | temp (F): {}'.format(temp['temp_sensor_id'], get_date_time(), temp['temp']))
         
     # section delimiter
     print("-" * 10)
@@ -114,7 +114,7 @@ def run():
     try:
         print('-----\n-> Program running.\n-> Searching for temp sensors...\n-----')
         # detect all attached temp sensors
-        files = getTempSensorFiles()
+        files = get_temp_sensor_files()
         
         # if no sensors are detected, kill the program
         if len(files) < 1:
@@ -126,7 +126,7 @@ def run():
                 temps = []
                 
                 for file in files:
-                    temps.append(getTemp(file))
+                    temps.append(get_temp(file))
                     
                 print_temps(temps)
                 time.sleep(120)
