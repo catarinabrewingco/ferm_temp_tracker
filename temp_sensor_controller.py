@@ -56,6 +56,7 @@ class TempSensorController:
     def __select_temp_sensors(self):
         self.AVAILABLE_TEMP_SENSORS = self.__get_available_temp_sensors()
         num_of_desired_sensors = self.__get_num_of_desired_sensors_from_available()
+        target_temp, target_temp_positive_allowance, target_temp_negative_allowance = self.__set_target_temp_info()
         sensor_names = self.__name_sensors(num_of_desired_sensors)
         self.selected_temp_sensors = []
 
@@ -64,7 +65,10 @@ class TempSensorController:
                 TempSensor(
                     sensor_names[int(sensor["position"]) - 1],
                     sensor["position"],
-                    sensor["id"]
+                    sensor["id"],
+                    target_temp,
+                    target_temp_positive_allowance,
+                    target_temp_negative_allowance
                 )
             )
 
@@ -90,6 +94,37 @@ class TempSensorController:
                 break
 
         return num_of_desired_sensors
+
+    # sets the target fermentation temperature for the vessels
+    def __set_target_temp_info(self):
+        while True:
+            try:
+                target_temp = int(input("-> What is the target fermentation temperature? "))
+            except ValueError:
+                print("----------\n!!! Sorry, you must enter an integer. Try again.\n----------")
+                continue
+            else:
+                break
+
+        while True:
+            try:
+                target_temp_positive_allowance = int(input("-> What is the positive allowance above the target fermentation temperature? "))
+            except ValueError:
+                print("----------\n!!! Sorry, you must enter an integer. Try again.\n----------")
+                continue
+            else:
+                break
+
+        while True:
+            try:
+                target_temp_negative_allowance = int(input("-> What is the negative allowance below the target fermentation temperature? "))
+            except ValueError:
+                print("----------\n!!! Sorry, you must enter an integer. Try again.\n----------")
+                continue
+            else:
+                break
+
+        return target_temp, target_temp_positive_allowance, target_temp_negative_allowance
 
     # prompt the user to assign names to each sensor they selected for use
     def __name_sensors(self, num_of_desired_sensors):
@@ -122,11 +157,19 @@ class TempSensorController:
             temp_data = sensor.get_latest_recorded_temp_data()
 
             if sensor.ERROR == None:
-                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}".format(
+                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}".format(
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
-                    temp_data.TEMP_IN_FAHRENHEIT
+                    temp_data.TEMP_IN_FAHRENHEIT,
+                    sensor.TARGET_TEMP,
+                    sensor.TARGET_TEMP - sensor.TARGET_TEMP_NEGATIVE_ALLOWANCE,
+                    sensor.TARGET_TEMP + sensor.TARGET_TEMP_POSITIVE_ALLOWANCE,
+                    sensor.highest_temp,
+                    sensor.lowest_temp,
+                    sensor.percentage_spent_above_target_temp_range,
+                    sensor.percentage_spent_below_target_temp_range,
+                    sensor.percentage_spent_within_target_temp_range
                 ))
             else:
                 print("!! ERROR: {}\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}".format(
