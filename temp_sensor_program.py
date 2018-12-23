@@ -37,6 +37,7 @@ def run():
         polling_rate = set_polling_rate()
 
         while True:
+            print("\n-> Polling sensors...")
             controller.get_temps()
             time.sleep(polling_rate)
         

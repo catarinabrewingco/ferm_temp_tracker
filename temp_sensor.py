@@ -2,6 +2,10 @@ import time
 import datetime
 
 class TempSensor:
+    FILE_NOT_FOUND = "FILE NOT FOUND"
+    NO_SUCCESSFUL_TEMP = "NO SUCCESSFUL TEMP READING"
+    FILE_EMPTY = "FILE EMPTY"
+
     # each sensor will be init'd with a user-given name, and an assigned position
     # based off of the sensor's directory id value, eg 28-0*
     def __init__(self, name, position, id, target_temp, target_temp_positive_allowance, target_temp_negative_allowance):
@@ -18,9 +22,11 @@ class TempSensor:
         self.below_target_temp_range = []
         self.above_target_temp_range = []
         self.within_target_temp_range = []
+        self.in_error_state = []
         self.percentage_spent_above_target_temp_range = None
         self.percentage_spent_below_target_temp_range = None
         self.percentage_spent_within_target_temp_range = None
+        self.percentage_spent_in_error_state = None
         self.recorded_temp_data = []
 
     def get_latest_recorded_temp_data(self):
@@ -39,39 +45,89 @@ class TempSensor:
     # at the time of the given timestamp (for consistency w/ other sensor readings)
     def get_temp_at(self, timestamp):
         raw_temp = self.__get_raw_temp_data()
+        # default temp data is 0.0 for an error state, only to be updated
+        # below if a proper temp is found
+        temp = 0.0
 
+        # if raw_temp is not empty and it contains a "t=" string (temp indicator)
         if len(raw_temp) > 0 and raw_temp.find("t=") != -1:
+            # get the temp in celsius, then convert it to fahrenheit
             temp_celsius = raw_temp[raw_temp.find("t=") + 2:]
             temp_fahrenheit = round(self.__convert_temp_to_fahrenheit(temp_celsius), 2)
 
-            self.__update_recorded_temp_data(timestamp, temp_fahrenheit)
-        else:
-            self.__update_recorded_temp_data(timestamp, 0.0)
+            # if the temp in fahrenheit does not exceed 110 and is not 0.0, eg is not an error temp
+            # (ds18b20 probes return high 100 F temps when erring sometimes)
+            if temp_fahrenheit < 110 and temp_fahrenheit != 0.0:
+                # set the temp equal to the temp_fahrenheit
+                temp = temp_fahrenheit
+            else:
+                self.ERROR = self.__set_error(self.NO_SUCCESSFUL_TEMP)
+        
+        # update the recorded temp data array with the given timestamp and final temp
+        self.__update_recorded_temp_data(timestamp, temp)
 
     # extracts the raw temperature data from the associated w1_slave file
     # or returns an empty array if the file cannot be found
     def __get_raw_temp_data(self):
         lines = self.__read_file()
 
+        # if there are lines, then the file was (at least) present
         if len(lines) > 0:
-            while lines[0].strip()[-3:] != "YES":
-                time.sleep(0.5)
-                lines = self.__read_file()
+            # but we need to verify now that it is reading temps
+            # if the first line doesn't end in YES, then we
+            # have a sensor error of some sort, which could be
+            # an internal error in the probe, or a disconnect that
+            # happened outside of the ~90 second detection zone
+            if lines[0].strip()[-3:] != "YES":
+                print("\n!! -> Hmmm...sensor named {} at position {} is not reporting temperatures correctly.".format(self.NAME, self.POSITION))
+                tries = 1
+                max_tries = 5
+
+                # retry reading the file to see if a proper temp is reported
+                while tries <= max_tries:
+                    print("\n!! -> Attempting to read file again...attempt {} of {}".format(tries, max_tries))
+                    lines = self.__read_file()
+                    # if the file is still not empty
+                    if len(lines) > 0:
+                        # check again to see if a temp is being reported
+                        if lines[0].strip()[-3:] != "YES":
+                            # if not, increase our tries counter, wait a couple seconds,
+                            # then try again
+                            tries += 1
+                            time.sleep(2)
+                            continue
+                        # if we got a successful temp reported, return it
+                        else:
+                            print("\n----------\n-> File reading now successful for sensor named {} at position {}.\n-> Continuing...\n----------\n".format(self.NAME, self.POSITION))
+                            return lines[1]
+                    # if the file is now empty, return an empty array (error state)
+                    else:
+                        print("\n!! -> File for sensor named {} at position {} was empty.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
+                        self.ERROR = self.__set_error(self.FILE_EMPTY)
+                        return []
+                # if we were never successful in getting a temp reported
+                # and the file was never empty, return an empty array (error state)
+                print("\n!! -> Couldn't find a successful temp reading for sensor named {} at position {}.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
+                self.ERROR = self.__set_error(self.NO_SUCCESSFUL_TEMP)
+                return []
+            # if the file's first line ended in YES, it is reporting a temp reading
+            # return that reading for analysis
             return lines[1]
+        # if the file was empty, return an empty array (error state)
         else:
+            if self.ERROR == None:
+                print("\n!! -> File for sensor named {} at position {} was empty.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
+                self.ERROR = self.__set_error(self.FILE_EMPTY)
+            
             return []
-        
 
     # returns the lines from the associated w1_slave file
     # or returns an empty array if the file cannot be found
     def __read_file(self):
         try:
-            data_file = open(self.FILE, "r")
-            lines = data_file.readlines()
-            data_file.close()
-            self.ERROR = None
-
-            return lines
+            with open(self.FILE, "r") as data_file:
+                self.ERROR = None
+                return data_file.readlines()
         
         except IOError:
             print("\n!!!!!!!!!!" +
@@ -80,7 +136,7 @@ class TempSensor:
                 "\n-> Please check its connections." +
                 "\n!!!!!!!!!!\n"
             )
-            self.ERROR = "w1_slave file NOT FOUND. Please check connections for this sensor."
+            self.ERROR = self.__set_error(self.FILE_NOT_FOUND)
 
             return []
 
@@ -95,10 +151,11 @@ class TempSensor:
     # temperature in Fahrenheit, rounded to two decimal places
     def __update_recorded_temp_data(self, timestamp, temp_fahrenheit):
         self.recorded_temp_data.append(TempData(timestamp, temp_fahrenheit))
-        # if the temperature successfully recorded, update highest/lowest and percentage temp info
+        self.__update_percentage_spent_lists(temp_fahrenheit)
+
+        # if the temperature successfully recorded, also update highest/lowest
         if temp_fahrenheit != 0.0:
             self.__update_highest_and_lowest_temps(temp_fahrenheit)
-            self.__update_percentage_above_and_below_target_temp(temp_fahrenheit)
 
     def __update_highest_and_lowest_temps(self, latest_temp):
         if self.highest_temp == None:
@@ -111,13 +168,16 @@ class TempSensor:
         elif self.lowest_temp > latest_temp:
             self.lowest_temp = latest_temp
 
-    def __update_percentage_above_and_below_target_temp(self, latest_temp):
+    def __update_percentage_spent_lists(self, latest_temp):
         total_entries = len(self.recorded_temp_data)
         positive_range = self.TARGET_TEMP + self.TARGET_TEMP_POSITIVE_ALLOWANCE
         negative_range = self.TARGET_TEMP - self.TARGET_TEMP_NEGATIVE_ALLOWANCE
 
+        # if the sensor is in an error state
+        if latest_temp == 0.0:
+            self.in_error_state.append(latest_temp)
         # if the temp is below the allowed minimum (target temp - negative allowance)
-        if latest_temp < negative_range:
+        elif latest_temp < negative_range:
             self.below_target_temp_range.append(latest_temp)
         # if the temp is above the allowed maximum (target temp + positive allowance)
         elif latest_temp > positive_range:
@@ -129,11 +189,15 @@ class TempSensor:
         below_entries = len(self.below_target_temp_range)
         above_entries = len(self.above_target_temp_range)
         within_entries = len(self.within_target_temp_range)
+        error_entries = len(self.in_error_state)
 
-        self.percentage_spent_below_target_temp_range = round(below_entries / total_entries * 100)
-        self.percentage_spent_above_target_temp_range = round(above_entries / total_entries * 100)
-        self.percentage_spent_within_target_temp_range = round(within_entries / total_entries * 100)
+        self.percentage_spent_below_target_temp_range = round(below_entries / total_entries * 100, 2)
+        self.percentage_spent_above_target_temp_range = round(above_entries / total_entries * 100, 2)
+        self.percentage_spent_within_target_temp_range = round(within_entries / total_entries * 100, 2)
+        self.percentage_spent_in_error_state = round(error_entries / total_entries * 100, 2)
 
+    def __set_error(self, error_type):
+        return "File error: {}.\nPlease check connections for this sensor.".format(error_type)
 
 
 # class to represent a given temperature recording's data set, including a timestamp and

@@ -157,7 +157,7 @@ class TempSensorController:
             temp_data = sensor.get_latest_recorded_temp_data()
 
             if sensor.ERROR == None:
-                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}".format(
+                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}\n% SPENT IN ERROR STATE: {}".format(
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
@@ -169,10 +169,11 @@ class TempSensorController:
                     sensor.lowest_temp,
                     sensor.percentage_spent_above_target_temp_range,
                     sensor.percentage_spent_below_target_temp_range,
-                    sensor.percentage_spent_within_target_temp_range
+                    sensor.percentage_spent_within_target_temp_range,
+                    sensor.percentage_spent_in_error_state
                 ))
             else:
-                print("!! ERROR: {}\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}".format(
+                print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}".format(
                     sensor.ERROR,
                     sensor.NAME,
                     sensor.POSITION,
