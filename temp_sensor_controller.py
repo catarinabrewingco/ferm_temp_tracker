@@ -6,11 +6,13 @@ import datetime
 from operator import itemgetter
 from temp_sensor import TempSensor as TempSensor
 from temp_sensor_exceptions import NoSensorsDetectedException
+import RPi.GPIO as GPIO
 
 class TempSensorController:
     # when init'd, detect all temp sensor directories
-    def __init__(self):
-        # self.AVAILABLE_TEMP_SENSORS = self.get_available_temp_sensors()
+    def __init__(self, available_led_pin_sets):
+        GPIO.setmode(GPIO.BOARD)
+        self.LED_PIN_SETS = available_led_pin_sets
         self.__select_temp_sensors()
 
     # main method - gets and prints the temp data from each selected sensor
@@ -48,6 +50,7 @@ class TempSensorController:
         except NoSensorsDetectedException:
             print("\n!!!!!!!!!!\n-> No temp sensors detected.\n-> Exiting program.\n!!!!!!!!!!\n")
             traceback.print_exc()
+            GPIO.cleanup()
             # kills the program
             exit()
 
@@ -59,8 +62,11 @@ class TempSensorController:
         target_temp, target_temp_positive_allowance, target_temp_negative_allowance = self.__set_target_temp_info()
         sensor_names = self.__name_sensors(num_of_desired_sensors)
         self.selected_temp_sensors = []
+        led_pin_set_counter = 0
 
         for sensor in self.AVAILABLE_TEMP_SENSORS[:num_of_desired_sensors]:
+            attach_led = led_pin_set_counter + 1 <= len(self.LED_PIN_SETS)
+
             self.selected_temp_sensors.append(
                 TempSensor(
                     sensor_names[int(sensor["position"]) - 1],
@@ -68,9 +74,13 @@ class TempSensorController:
                     sensor["id"],
                     target_temp,
                     target_temp_positive_allowance,
-                    target_temp_negative_allowance
+                    target_temp_negative_allowance,
+                    self.LED_PIN_SETS[led_pin_set_counter] if attach_led else None
                 )
             )
+
+            if attach_led:
+                led_pin_set_counter += 1
 
     # prompt the user for a number of desired sensors to use from the available set
     def __get_num_of_desired_sensors_from_available(self):
@@ -157,7 +167,7 @@ class TempSensorController:
             temp_data = sensor.get_latest_recorded_temp_data()
 
             if sensor.ERROR == None:
-                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}\n% SPENT IN ERROR STATE: {}".format(
+                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}\n% SPENT IN ERROR STATE: {}\nHAS SENSOR: {}".format(
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
@@ -170,15 +180,17 @@ class TempSensorController:
                     sensor.percentage_spent_above_target_temp_range,
                     sensor.percentage_spent_below_target_temp_range,
                     sensor.percentage_spent_within_target_temp_range,
-                    sensor.percentage_spent_in_error_state
+                    sensor.percentage_spent_in_error_state,
+                    sensor.HAS_SENSOR
                 ))
             else:
-                print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}".format(
+                print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nHAS SENSOR: {}".format(
                     sensor.ERROR,
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
-                    temp_data.TEMP_IN_FAHRENHEIT
+                    temp_data.TEMP_IN_FAHRENHEIT,
+                    sensor.HAS_SENSOR
                 ))
             print("-" * 5)
         print("=" * 10)

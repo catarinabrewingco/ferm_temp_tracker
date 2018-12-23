@@ -1,5 +1,6 @@
 import time
 import datetime
+from temp_sensor_led import RgbLed
 
 class TempSensor:
     FILE_NOT_FOUND = "FILE NOT FOUND"
@@ -8,7 +9,7 @@ class TempSensor:
 
     # each sensor will be init'd with a user-given name, and an assigned position
     # based off of the sensor's directory id value, eg 28-0*
-    def __init__(self, name, position, id, target_temp, target_temp_positive_allowance, target_temp_negative_allowance):
+    def __init__(self, name, position, id, target_temp, target_temp_positive_allowance, target_temp_negative_allowance, led_pins):
         self.NAME = name
         self.POSITION = position
         self.ID = id
@@ -28,6 +29,12 @@ class TempSensor:
         self.percentage_spent_within_target_temp_range = None
         self.percentage_spent_in_error_state = None
         self.recorded_temp_data = []
+
+        if led_pins != None:
+            self.LED = RgbLed(led_pins)
+            self.HAS_SENSOR = True
+        else:
+            self.HAS_SENSOR = False
 
     def get_latest_recorded_temp_data(self):
         if len(self.recorded_temp_data) > 0:

@@ -1,6 +1,8 @@
 import traceback
 import time
 from temp_sensor_controller import TempSensorController as Controller
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BOARD)
 
 # !!! NOTE !!!
 # Are you having trouble running this script, though when last it was run all was working?
@@ -9,6 +11,10 @@ from temp_sensor_controller import TempSensorController as Controller
 # There are input() inconsistencies between Python 2 and Python 3+, so make sure you're using latest
     # by using the command for python3 (if on Raspberry Pi 3 B+, anyway)
 # !!! END NOTE !!!
+
+LED_PIN_SETS = [
+    {"red": 11, "green": 13, "blue": 15}
+]
 
 # sets the polling rate between temp recordings
 def set_polling_rate():
@@ -31,7 +37,7 @@ def run():
         print("----------\n-> Program running.\n-> Searching for temp sensors...\n----------")
 
         # instantiate controller obj (which also detects all available sensors)
-        controller = Controller()
+        controller = Controller(LED_PIN_SETS)
 
         # ask the user how long they would like the wait to be between recording temperatures
         polling_rate = set_polling_rate()
@@ -45,6 +51,7 @@ def run():
     except KeyboardInterrupt:
         print("\n!!!!!!!!!!\n-> Keyboard interrupt has been triggered.\n-> Exiting program.\n!!!!!!!!!!\n")
         traceback.print_exc()
+        GPIO.cleanup()
         # kills the program
         exit()
         
@@ -52,6 +59,7 @@ def run():
     except Exception as e:
         print("\n!!!!!!!!!!\n-> A(n) {} error has occurred.\n-> Exiting program.\n!!!!!!!!!!\n".format(e.__class__.__name__))
         traceback.print_exc()
+        GPIO.cleanup()
         # kills the program
         exit()
 
