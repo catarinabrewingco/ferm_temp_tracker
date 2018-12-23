@@ -34,6 +34,7 @@ class TempSensor:
             self.LED = RgbLed(led_pins)
             self.HAS_SENSOR = True
         else:
+            self.LED = None
             self.HAS_SENSOR = False
 
     def get_latest_recorded_temp_data(self):
@@ -183,15 +184,19 @@ class TempSensor:
         # if the sensor is in an error state
         if latest_temp == 0.0:
             self.in_error_state.append(latest_temp)
+            self.__try_update_led("ERROR")
         # if the temp is below the allowed minimum (target temp - negative allowance)
         elif latest_temp < negative_range:
             self.below_target_temp_range.append(latest_temp)
+            self.__try_update_led("BELOW")
         # if the temp is above the allowed maximum (target temp + positive allowance)
         elif latest_temp > positive_range:
             self.above_target_temp_range.append(latest_temp)
+            self.__try_update_led("ABOVE")
         # if the temp is within the allowed range of temps
         elif latest_temp >= negative_range and latest_temp <= positive_range:
             self.within_target_temp_range.append(latest_temp)
+            self.__try_update_led("WITHIN")
 
         below_entries = len(self.below_target_temp_range)
         above_entries = len(self.above_target_temp_range)
@@ -205,6 +210,10 @@ class TempSensor:
 
     def __set_error(self, error_type):
         return "File error: {}.\nPlease check connections for this sensor.".format(error_type)
+
+    def __try_update_led(self, color):
+        if self.LED != None:
+            self.LED.update_color(color)
 
 
 # class to represent a given temperature recording's data set, including a timestamp and
