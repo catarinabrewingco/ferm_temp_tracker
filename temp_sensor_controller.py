@@ -3,16 +3,18 @@ import glob
 import temp_sensor
 import traceback
 import datetime
+import RPi.GPIO as GPIO
 from operator import itemgetter
 from temp_sensor import TempSensor as TempSensor
 from temp_sensor_exceptions import NoSensorsDetectedException
-import RPi.GPIO as GPIO
+from temp_sensor_csv_controller import CsvController
 
 class TempSensorController:
     # when init'd, detect all temp sensor directories
     def __init__(self, available_led_pin_sets):
         GPIO.setmode(GPIO.BOARD)
         self.LED_PIN_SETS = available_led_pin_sets
+        self.CSV_CONTROLLER = CsvController()
         self.__select_temp_sensors()
 
     # main method - gets and prints the temp data from each selected sensor
@@ -21,6 +23,7 @@ class TempSensorController:
 
         for sensor in self.__get_selected_temp_sensors():
             sensor.get_temp_at(timestamp)
+            print("-> Polling finished for sensor named {} at position {}.".format(sensor.NAME, sensor.POSITION))
         self.__print_temp_data()
 
     # 1. detects all available temperature sensors
@@ -164,10 +167,11 @@ class TempSensorController:
         print("=" * 10)
         print("-" * 5)
         for sensor in self.__get_selected_temp_sensors():
+            self.CSV_CONTROLLER.append_sensor_data_to_file(sensor)
             temp_data = sensor.get_latest_recorded_temp_data()
 
             if sensor.ERROR == None:
-                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}\n% SPENT IN ERROR STATE: {}\nHAS SENSOR: {}".format(
+                print("NAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nTARGET TEMP (F): {}\nALLOWED TEMP RANGE (F): {}-{}\nHIGHEST TEMP (F): {}\nLOWEST TEMP (F): {}\n% SPENT ABOVE TEMP RANGE: {}\n% SPENT WITHIN TEMP RANGE: {}\n% SPENT BELOW TEMP RANGE: {}\n% SPENT IN ERROR STATE: {}\nHAS LED: {}".format(
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
@@ -178,19 +182,19 @@ class TempSensorController:
                     sensor.highest_temp,
                     sensor.lowest_temp,
                     sensor.percentage_spent_above_target_temp_range,
-                    sensor.percentage_spent_below_target_temp_range,
                     sensor.percentage_spent_within_target_temp_range,
+                    sensor.percentage_spent_below_target_temp_range,
                     sensor.percentage_spent_in_error_state,
-                    sensor.HAS_SENSOR
+                    sensor.HAS_LED
                 ))
             else:
-                print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nHAS SENSOR: {}".format(
+                print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nHAS LED: {}".format(
                     sensor.ERROR,
                     sensor.NAME,
                     sensor.POSITION,
                     temp_data.DATETIME,
                     temp_data.TEMP_IN_FAHRENHEIT,
-                    sensor.HAS_SENSOR
+                    sensor.HAS_LED
                 ))
             print("-" * 5)
         print("=" * 10)

@@ -20,22 +20,22 @@ class TempSensor:
         self.TARGET_TEMP_NEGATIVE_ALLOWANCE = target_temp_negative_allowance
         self.highest_temp = None
         self.lowest_temp = None
-        self.below_target_temp_range = []
         self.above_target_temp_range = []
         self.within_target_temp_range = []
+        self.below_target_temp_range = []
         self.in_error_state = []
         self.percentage_spent_above_target_temp_range = None
-        self.percentage_spent_below_target_temp_range = None
         self.percentage_spent_within_target_temp_range = None
+        self.percentage_spent_below_target_temp_range = None
         self.percentage_spent_in_error_state = None
         self.recorded_temp_data = []
 
         if led_pins != None:
             self.LED = RgbLed(led_pins)
-            self.HAS_SENSOR = True
+            self.HAS_LED = True
         else:
             self.LED = None
-            self.HAS_SENSOR = False
+            self.HAS_LED = False
 
     def get_latest_recorded_temp_data(self):
         if len(self.recorded_temp_data) > 0:
@@ -110,13 +110,16 @@ class TempSensor:
                             return lines[1]
                     # if the file is now empty, return an empty array (error state)
                     else:
-                        print("\n!! -> File for sensor named {} at position {} was empty.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
-                        self.ERROR = self.__set_error(self.FILE_EMPTY)
+                        if self.ERROR == None:
+                            print("\n!! -> File for sensor named {} at position {}  may have been empty after retrying.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
+                            self.ERROR = self.__set_error(self.FILE_EMPTY)
                         return []
                 # if we were never successful in getting a temp reported
                 # and the file was never empty, return an empty array (error state)
-                print("\n!! -> Couldn't find a successful temp reading for sensor named {} at position {}.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
-                self.ERROR = self.__set_error(self.NO_SUCCESSFUL_TEMP)
+                if self.ERROR == None:
+                    print("\n!! -> Couldn't find a successful temp reading for sensor named {} at position {}.\n!! -> Continuing with its temp reporting at 0.0 degrees F.".format(self.NAME, self.POSITION))
+                    self.ERROR = self.__set_error(self.NO_SUCCESSFUL_TEMP)
+
                 return []
             # if the file's first line ended in YES, it is reporting a temp reading
             # return that reading for analysis
