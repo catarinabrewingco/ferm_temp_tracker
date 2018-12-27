@@ -1,3 +1,0 @@
-Sensor Name,Sensor Position,Sensor ID,Timestamp,Recorded Temp,Target Temp,Allowed Temp Range,Highest Recorded Temp,Lowest Recorded Temp,% Spent Above Temp Range,% Spent Within Temp Range,% Spent Below Temp Range,% Spent in Error State,Error
-PTH,1,28-01131fd06c2a,"Thu, Dec 27, 2018 11:23:44 AM",74.64,75,73-77,74.64,74.64,0.0,100.0,0.0,0.0,
-MP,2,28-021318f245aa,"Thu, Dec 27, 2018 11:23:44 AM",74.75,75,73-77,74.75,74.75,0.0,100.0,0.0,0.0,
