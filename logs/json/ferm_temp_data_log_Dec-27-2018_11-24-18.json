@@ -1,0 +1,65 @@
+[
+    {
+        "Sensor Data": {
+            "% Spent Above Temp Range": 0.0,
+            "% Spent Below Temp Range": 0.0,
+            "% Spent Within Temp Range": 100.0,
+            "% Spent in Error State": 0.0,
+            "Allowed Temp Range": "71-78",
+            "Highest Recorded Temp": 74.64,
+            "Lowest Recorded Temp": 74.64,
+            "Recorded Temp Data": [
+                {
+                    "Temp (in Fahrenheit)": 74.64,
+                    "Timestamp": "Thu, Dec 27, 2018 11:24:19 AM"
+                }
+            ],
+            "Target Temp": 75
+        },
+        "Sensor ID": "28-01131fd06c2a",
+        "Sensor Name": "MP",
+        "Sensor Position": 1
+    },
+    {
+        "Sensor Data": {
+            "% Spent Above Temp Range": 0.0,
+            "% Spent Below Temp Range": 0.0,
+            "% Spent Within Temp Range": 100.0,
+            "% Spent in Error State": 0.0,
+            "Allowed Temp Range": "71-78",
+            "Highest Recorded Temp": 74.86,
+            "Lowest Recorded Temp": 74.86,
+            "Recorded Temp Data": [
+                {
+                    "Temp (in Fahrenheit)": 74.86,
+                    "Timestamp": "Thu, Dec 27, 2018 11:24:19 AM"
+                }
+            ],
+            "Target Temp": 75
+        },
+        "Sensor ID": "28-021318f245aa",
+        "Sensor Name": "SP",
+        "Sensor Position": 2
+    },
+    {
+        "Sensor Data": {
+            "% Spent Above Temp Range": 0.0,
+            "% Spent Below Temp Range": 100.0,
+            "% Spent Within Temp Range": 0.0,
+            "% Spent in Error State": 0.0,
+            "Allowed Temp Range": "71-78",
+            "Highest Recorded Temp": 70.47,
+            "Lowest Recorded Temp": 70.47,
+            "Recorded Temp Data": [
+                {
+                    "Temp (in Fahrenheit)": 70.47,
+                    "Timestamp": "Thu, Dec 27, 2018 11:24:19 AM"
+                }
+            ],
+            "Target Temp": 75
+        },
+        "Sensor ID": "28-021318fad5aa",
+        "Sensor Name": "S",
+        "Sensor Position": 3
+    }
+]

@@ -1,14 +1,15 @@
 import os
 import glob
-import temp_sensor
 import traceback
 import datetime
 import RPi.GPIO as GPIO
+import sys
+sys.path.append("..")
 from operator import itemgetter
-from temp_sensor import TempSensor as TempSensor
-from temp_sensor_exceptions import NoSensorsDetectedException
-from temp_sensor_csv_controller import CsvController
-from temp_sensor_json_controller import JsonController
+from models.temp_sensor import TempSensor as TempSensor
+from helpers.temp_sensor_exceptions import NoSensorsDetectedException
+from controllers.temp_sensor_csv_controller import CsvController
+from controllers.temp_sensor_json_controller import JsonController
 
 class TempSensorController:
     # when init'd, detect all temp sensor directories

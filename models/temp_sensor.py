@@ -1,6 +1,8 @@
 import time
 import datetime
-from temp_sensor_led import RgbLed
+import sys
+sys.path.append("..")
+from helpers.temp_sensor_led import RgbLed
 
 class TempSensor:
     FILE_NOT_FOUND = "FILE NOT FOUND"

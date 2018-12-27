@@ -1,0 +1,44 @@
+[
+    {
+        "Sensor Data": {
+            "% Spent Above Temp Range": 0.0,
+            "% Spent Below Temp Range": 0.0,
+            "% Spent Within Temp Range": 100.0,
+            "% Spent in Error State": 0.0,
+            "Allowed Temp Range": "73-77",
+            "Highest Recorded Temp": 74.97,
+            "Lowest Recorded Temp": 74.97,
+            "Recorded Temp Data": [
+                {
+                    "Temp (in Fahrenheit)": 74.97,
+                    "Timestamp": "Thu, Dec 27, 2018 11:50:25 AM"
+                }
+            ],
+            "Target Temp": 75
+        },
+        "Sensor ID": "28-01131fd06c2a",
+        "Sensor Name": "Praise the Haze",
+        "Sensor Position": 1
+    },
+    {
+        "Sensor Data": {
+            "% Spent Above Temp Range": 0.0,
+            "% Spent Below Temp Range": 0.0,
+            "% Spent Within Temp Range": 100.0,
+            "% Spent in Error State": 0.0,
+            "Allowed Temp Range": "73-77",
+            "Highest Recorded Temp": 75.2,
+            "Lowest Recorded Temp": 75.2,
+            "Recorded Temp Data": [
+                {
+                    "Temp (in Fahrenheit)": 75.2,
+                    "Timestamp": "Thu, Dec 27, 2018 11:50:25 AM"
+                }
+            ],
+            "Target Temp": 75
+        },
+        "Sensor ID": "28-021318f245aa",
+        "Sensor Name": "Moonlight Pale",
+        "Sensor Position": 2
+    }
+]

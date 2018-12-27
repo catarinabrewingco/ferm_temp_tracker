@@ -1,6 +1,6 @@
 import traceback
 import time
-from temp_sensor_controller import TempSensorController as Controller
+from controllers.temp_sensor_controller import TempSensorController as Controller
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BOARD)
 
