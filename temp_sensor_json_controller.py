@@ -12,6 +12,10 @@ class JsonController:
 
     def __set_filepath(self):
         filename = "ferm_temp_data_log_{}.json".format(self.__get_datetime())
+
+        # try to make the subdirectories, if not found
+        os.makedirs("{}/{}".format(self.LOGS_DIRECTORY, self.JSON_DIRECTORY), exist_ok=True)
+
         return os.path.join(self.LOGS_DIRECTORY, self.JSON_DIRECTORY, filename)
 
     # gets the current date and time in format MonthDayYear_Hour-Minute-Seconds

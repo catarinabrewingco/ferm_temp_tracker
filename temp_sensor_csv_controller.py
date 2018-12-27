@@ -12,6 +12,10 @@ class CsvController:
 
     def __set_filepath(self):
         filename = "ferm_temp_data_log_{}.csv".format(self.__get_datetime())
+
+        # try to make the subdirectories, if not found
+        os.makedirs("{}/{}".format(self.LOGS_DIRECTORY, self.CSV_DIRECTORY), exist_ok=True)
+
         return os.path.join(self.LOGS_DIRECTORY, self.CSV_DIRECTORY, filename)
 
     def __set_headers(self):
