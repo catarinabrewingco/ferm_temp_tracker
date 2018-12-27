@@ -8,14 +8,16 @@ from operator import itemgetter
 from temp_sensor import TempSensor as TempSensor
 from temp_sensor_exceptions import NoSensorsDetectedException
 from temp_sensor_csv_controller import CsvController
+from temp_sensor_json_controller import JsonController
 
 class TempSensorController:
     # when init'd, detect all temp sensor directories
     def __init__(self, available_led_pin_sets):
         GPIO.setmode(GPIO.BOARD)
         self.LED_PIN_SETS = available_led_pin_sets
-        self.CSV_CONTROLLER = CsvController()
         self.__select_temp_sensors()
+        self.CSV_CONTROLLER = CsvController()
+        self.JSON_CONTROLLER = JsonController(self.__get_selected_temp_sensors())
 
     # main method - gets and prints the temp data from each selected sensor
     def get_temps(self):
@@ -168,6 +170,7 @@ class TempSensorController:
         print("-" * 5)
         for sensor in self.__get_selected_temp_sensors():
             self.CSV_CONTROLLER.append_sensor_data_to_file(sensor)
+            self.JSON_CONTROLLER.update_sensor_data(sensor)
             temp_data = sensor.get_latest_recorded_temp_data()
 
             if sensor.ERROR == None:
@@ -185,7 +188,7 @@ class TempSensorController:
                     sensor.percentage_spent_within_target_temp_range,
                     sensor.percentage_spent_below_target_temp_range,
                     sensor.percentage_spent_in_error_state,
-                    sensor.HAS_LED
+                    sensor.HAS_LED # debug purposes - can be removed
                 ))
             else:
                 print("!!!!!!!!!!\nERROR: {}\n!!!!!!!!!!\nNAME: {}\nPOSITION: {}\nLATEST TIMESTAMP: {}\nLATEST TEMP (F): {}\nHAS LED: {}".format(
@@ -194,7 +197,7 @@ class TempSensorController:
                     sensor.POSITION,
                     temp_data.DATETIME,
                     temp_data.TEMP_IN_FAHRENHEIT,
-                    sensor.HAS_LED
+                    sensor.HAS_LED # debug purposes - can be removed
                 ))
             print("-" * 5)
         print("=" * 10)

@@ -1,16 +1,21 @@
 import csv
 import datetime
+import os.path
 
 class CsvController:
+    LOGS_DIRECTORY = "logs"
+    CSV_DIRECTORY = "csv"
+
     def __init__(self):
-        self.FILENAME = self.__set_filename()
+        self.FILEPATH = self.__set_filepath()
         self.__set_headers()
 
-    def __set_filename(self):
-        return "ferm_temp_data_log_{}.csv".format(self.__get_datetime())
+    def __set_filepath(self):
+        filename = "ferm_temp_data_log_{}.csv".format(self.__get_datetime())
+        return os.path.join(self.LOGS_DIRECTORY, self.CSV_DIRECTORY, filename)
 
     def __set_headers(self):
-        with open(self.FILENAME, 'w') as csv_file:
+        with open(self.FILEPATH, 'w') as csv_file:
             row = [
                 "Sensor Name",
                 "Sensor Position",
@@ -38,7 +43,7 @@ class CsvController:
         return current_date_time.strftime("%b-%d-%Y_%I-%M-%S")
 
     def append_sensor_data_to_file(self, sensor):
-        with open(self.FILENAME, 'a') as csv_file:
+        with open(self.FILEPATH, 'a') as csv_file:
             temp_data = sensor.get_latest_recorded_temp_data()
             row = [
                 sensor.NAME,
