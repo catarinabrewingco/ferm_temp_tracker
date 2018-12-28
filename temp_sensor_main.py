@@ -13,7 +13,10 @@ GPIO.setmode(GPIO.BOARD)
 # !!! END NOTE !!!
 
 LED_PIN_SETS = [
-    {"red": 11, "green": 13, "blue": 15}
+    {"red": 11, "green": 13, "blue": 15},
+    {"red": 19, "green": 21, "blue": 23},
+    {"red": 29, "green": 31, "blue": 33},
+    {"red": 36, "green": 38, "blue": 40}
 ]
 
 # sets the polling rate between temp recordings
