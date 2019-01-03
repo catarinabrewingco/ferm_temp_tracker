@@ -1,6 +1,7 @@
 import json
 import datetime
 import os.path
+from controllers.temp_sensor_matplotlib import Plotter
 
 class JsonController:
     LOGS_DIRECTORY = "logs"
@@ -9,6 +10,7 @@ class JsonController:
     def __init__(self, sensors):
         self.FILEPATH = self.__set_filepath()
         self.__create_file(sensors)
+        self.PLOTTER = Plotter(self.FILEPATH)
 
     def __set_filepath(self):
         filename = "ferm_temp_data_log_{}.json".format(self.__get_datetime())
@@ -100,7 +102,7 @@ class JsonController:
         # search through the given dataset
         for sensor_dict in data:
             # when we find the matching sensor dict for the given sensor
-            if sensor_dict["Sensor Name"] == sensor.NAME:
+            if sensor_dict["Sensor ID"] == sensor.ID:
                 # get a variable for the Sensor Data object that needs updating
                 sensor_data = sensor_dict["Sensor Data"]
 
@@ -115,3 +117,5 @@ class JsonController:
 
         # overwrite the file with the newly updated dataset
         self.__write_to_json_file(data)
+
+        #####self.PLOTTER.animate()

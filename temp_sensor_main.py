@@ -52,6 +52,7 @@ def run():
         
     # if Crtl+C is pressed on the keyboard, kill the program
     except KeyboardInterrupt:
+        controller.JSON_CONTROLLER.PLOTTER.animate()
         print("\n!!!!!!!!!!\n-> Keyboard interrupt has been triggered.\n-> Exiting program.\n!!!!!!!!!!\n")
         traceback.print_exc()
         GPIO.cleanup()
